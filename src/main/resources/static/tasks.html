@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KFC券文案修改任务列表</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #e4002b;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .create-section {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #e4002b;
+        }
+
+        .hint {
+            color: #999;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .btn {
+            background: #e4002b;
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+
+        .btn:hover {
+            background: #c40024;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(228, 0, 43, 0.3);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .task-list {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+
+        .task-list h2 {
+            color: #333;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .task-item {
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .task-item:hover {
+            border-color: #e4002b;
+            box-shadow: 0 2px 8px rgba(228, 0, 43, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .child-tasks {
+            margin-top: 15px;
+            padding-left: 20px;
+            border-left: 3px solid #f0f0f0;
+            display: none;
+        }
+        
+        .child-tasks.show {
+            display: block;
+        }
+        
+        .child-task-item {
+            background: #f9f9f9;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .child-task-item:hover {
+            background: #f0f0f0;
+            transform: translateX(3px);
+        }
+        
+        .toggle-btn {
+            background: none;
+            border: none;
+            color: #e4002b;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 5px 10px;
+            margin-left: 10px;
+        }
+
+        .task-info {
+            flex: 1;
+        }
+
+        .task-title {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .task-meta {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .task-meta span {
+            margin-right: 15px;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-0 {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-1 {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-2 {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+
+        .refresh-btn {
+            background: #f0f0f0;
+            color: #333;
+            margin-left: 10px;
+        }
+
+        .refresh-btn:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 页头 -->
+        <div class="header">
+            <h1>🍗 KFC券文案修改系统</h1>
+            <p>支持批量处理多个活动编码，智能AI文案修改</p>
+        </div>
+
+        <!-- 创建任务区域 -->
+        <div class="create-section">
+            <h2 style="color: #333; margin-bottom: 20px;">📝 创建新任务</h2>
+            <div class="form-group">
+                <label for="taskName">任务名称</label>
+                <input type="text" id="taskName" placeholder="例如：11月黄金脆皮鸡下线专项">
+            </div>
+            <div class="form-group">
+                <label for="activityCodes">活动编码（多个用逗号分隔）</label>
+                <input type="text" id="activityCodes" placeholder="例如：TEST001,TEST002,TEST003">
+                <div class="hint">支持输入多个活动编码，使用英文逗号分隔</div>
+            </div>
+            <div class="form-group">
+                <label for="operation">操作指令</label>
+                <textarea id="operation" rows="3" placeholder="例如：删除黄金脆皮鸡和其相关的说明"></textarea>
+            </div>
+            <button class="btn" id="createBtn" onclick="createTasks()">🚀 创建任务</button>
+        </div>
+
+        <!-- 任务列表 -->
+        <div class="task-list">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2>📋 任务列表</h2>
+                <button class="btn refresh-btn" onclick="loadTasks()">🔄 刷新</button>
+            </div>
+            <div id="taskListContainer">
+                <div class="loading">加载中...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量：记录展开的大任务ID
+        let expandedTaskIds = new Set();
+        
+        // 页面加载时获取任务列表
+        window.onload = function() {
+            loadTasks();
+            // 每5秒自动刷新
+            setInterval(loadTasks, 5000);
+        };
+
+        // 加载任务列表
+        async function loadTasks() {
+            try {
+                const response = await fetch('/api/coupon/tasks');
+                const tasks = await response.json();
+
+                const container = document.getElementById('taskListContainer');
+
+                if (tasks.length === 0) {
+                    container.innerHTML = '<div class="empty">暂无任务记录</div>';
+                    return;
+                }
+
+                let html = '';
+                tasks.forEach(task => {
+                    // 计算状态
+                    let statusText = '';
+                    let statusClass = '';
+                    
+                    if (task.processingCount > 0) {
+                        statusText = `处理中 (${task.processingCount}/${task.totalCount})`;
+                        statusClass = 'status-0';
+                    } else if (task.failCount > 0) {
+                        statusText = `部分失败 (${task.successCount}/${task.totalCount})`;
+                        statusClass = 'status-2';
+                    } else {
+                        statusText = '全部完成';
+                        statusClass = 'status-1';
+                    }
+
+                    html += `
+                        <div class="task-item" id="parent-task-${task.id}">
+                            <div class="task-header">
+                                <div class="task-info">
+                                    <div class="task-title">${task.name || task.operation || '未命名任务'}</div>
+                                    <div class="task-meta">
+                                        <span>📄 子任务：${task.totalCount}个</span>
+                                        <span>✅ 成功：${task.successCount}</span>
+                                        <span>❌ 失败：${task.failCount}</span>
+                                        <span>🕐 创建时间：${formatTime(task.createTime)}</span>
+                                    </div>
+                                </div>
+                                <div style="display: flex; align-items: center;">
+                                    <div class="status-badge ${statusClass}">${statusText}</div>
+                                    <button class="toggle-btn" onclick="toggleChildTasks(event, ${task.id})">▼ 展开</button>
+                                </div>
+                            </div>
+                            <div class="child-tasks" id="child-tasks-${task.id}"></div>
+                        </div>
+                    `;
+                });
+
+                container.innerHTML = html;
+                
+                // 恢复展开状态
+                expandedTaskIds.forEach(taskId => {
+                    const childTasksDiv = document.getElementById(`child-tasks-${taskId}`);
+                    const toggleBtn = document.querySelector(`#parent-task-${taskId} .toggle-btn`);
+                    if (childTasksDiv && toggleBtn) {
+                        childTasksDiv.classList.add('show');
+                        toggleBtn.textContent = '▲ 收起';
+                        // 重新加载子任务
+                        loadChildTasksForRestore(taskId);
+                    }
+                });
+
+            } catch (error) {
+                console.error('加载任务列表失败', error);
+            }
+        }
+
+        // 创建任务
+        async function createTasks() {
+            const taskName = document.getElementById('taskName').value.trim();
+            const activityCodesInput = document.getElementById('activityCodes').value.trim();
+            const operation = document.getElementById('operation').value.trim();
+
+            if (!activityCodesInput) {
+                alert('请输入活动编码！');
+                return;
+            }
+
+            if (!operation) {
+                alert('请输入操作指令！');
+                return;
+            }
+
+            const createBtn = document.getElementById('createBtn');
+            createBtn.disabled = true;
+            createBtn.textContent = '创建中...';
+
+            try {
+                // 直接传递逗号分隔的字符串给后端
+                const response = await fetch('/api/coupon/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        taskName: taskName,
+                        activityCode: activityCodesInput, // 直接传递字符串
+                        operation: operation
+                    })
+                });
+
+                const data = await response.json();
+
+                createBtn.disabled = false;
+                createBtn.textContent = '🚀 创建任务';
+
+                if (data.success) {
+                    alert(`任务创建完成！\n总数：${data.totalCount}\n成功：${data.successCount}\n失败：${data.failCount}`);
+                    
+                    // 清空输入
+                    document.getElementById('activityCodes').value = '';
+                    document.getElementById('operation').value = '';
+                    
+                    // 刷新任务列表
+                    loadTasks();
+                } else {
+                    alert('任务创建失败：' + (data.message || '未知错误'));
+                }
+
+            } catch (error) {
+                createBtn.disabled = false;
+                createBtn.textContent = '🚀 创建任务';
+                alert('请求失败：' + error.message);
+            }
+        }
+
+        // 切换子任务显示
+        async function toggleChildTasks(event, parentTaskId) {
+            event.stopPropagation();
+            
+            const childTasksDiv = document.getElementById(`child-tasks-${parentTaskId}`);
+            const toggleBtn = event.target;
+            
+            if (childTasksDiv.classList.contains('show')) {
+                // 折叠
+                childTasksDiv.classList.remove('show');
+                toggleBtn.textContent = '▼ 展开';
+                // 从记录中移除
+                expandedTaskIds.delete(parentTaskId);
+            } else {
+                // 展开，加载子任务
+                childTasksDiv.classList.add('show');
+                toggleBtn.textContent = '▲ 收起';
+                // 添加到记录
+                expandedTaskIds.add(parentTaskId);
+                
+                await loadChildTasks(parentTaskId, childTasksDiv);
+            }
+        }
+        
+        // 加载子任务（提取为独立函数）
+        async function loadChildTasks(parentTaskId, childTasksDiv) {
+            try {
+                const response = await fetch(`/api/coupon/parent-task/${parentTaskId}/tasks`);
+                const childTasks = await response.json();
+                
+                if (childTasks.length === 0) {
+                    childTasksDiv.innerHTML = '<div style="padding: 10px; color: #999;">暂无子任务</div>';
+                    return;
+                }
+                
+                let html = '';
+                childTasks.forEach(task => {
+                    // 状态判断：0-处理中, 1-已完成, 2-已更新, <0-失败
+                    let statusText = '未知';
+                    if (task.status === 0) {
+                        statusText = '处理中';
+                    } else if (task.status === 1) {
+                        statusText = '已完成';
+                    } else if (task.status === 2) {
+                        statusText = '已更新';
+                    } else if (task.status < 0) {
+                        statusText = '失败';
+                    }
+                    const statusClass = `status-${task.status}`;
+                    
+                    html += `
+                        <div class="child-task-item" onclick="viewTask(${task.id})">
+                            <div>
+                                <div style="font-weight: 500; margin-bottom: 5px;">📌 ${task.subScene || '未知活动编码'}</div>
+                                <div style="font-size: 12px; color: #999;">🕐 ${formatTime(task.createTime)}</div>
+                            </div>
+                            <div class="status-badge ${statusClass}" style="font-size: 11px;">${statusText}</div>
+                        </div>
+                    `;
+                });
+                
+                childTasksDiv.innerHTML = html;
+                
+            } catch (error) {
+                console.error('加载子任务失败', error);
+                childTasksDiv.innerHTML = '<div style="padding: 10px; color: #e4002b;">加载失败</div>';
+            }
+        }
+        
+        // 恢复时加载子任务（不显示加载中）
+        async function loadChildTasksForRestore(parentTaskId) {
+            const childTasksDiv = document.getElementById(`child-tasks-${parentTaskId}`);
+            if (childTasksDiv) {
+                await loadChildTasks(parentTaskId, childTasksDiv);
+            }
+        }
+
+        // 格式化时间
+        function formatTime(timeStr) {
+            if (!timeStr) return '未知';
+            const date = new Date(timeStr);
+            const now = new Date();
+            const diff = now - date;
+
+            if (diff < 60000) {
+                return '刚刚';
+            } else if (diff < 3600000) {
+                return Math.floor(diff / 60000) + '分钟前';
+            } else if (diff < 86400000) {
+                return Math.floor(diff / 3600000) + '小时前';
+            } else {
+                return timeStr.substring(0, 19).replace('T', ' ');
+            }
+        }
+        
+        // 查看任务详情
+        function viewTask(taskId) {
+            window.location.href = `/index.html?taskId=${taskId}`;
+        }
+    </script>
+</body>
+</html>
