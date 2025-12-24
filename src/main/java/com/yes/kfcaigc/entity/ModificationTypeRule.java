@@ -24,7 +24,12 @@ public class ModificationTypeRule {
      * 关键词（用于识别该类型，逗号分隔）
      */
     private String keywords;
-    
+
+    /**
+     * 场景标识（如：通用/删除产品/替换产品等）
+     */
+    private String scene;
+
     /**
      * 规则详情（自然语言描述，AI可直接读取）
      */

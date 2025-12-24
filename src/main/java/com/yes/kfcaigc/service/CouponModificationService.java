@@ -46,22 +46,25 @@ public class CouponModificationService {
         // 识别场景规则
         SceneRuleService.SceneRule sceneRule = sceneRuleService.identifyScene(operation);
         final String structuredRules;
+        final String sceneName;
         if (sceneRule != null) {
             structuredRules = sceneRule.generateOperationDescription();
-            log.info("识别到场景规则：\n{}", structuredRules);
+            sceneName = sceneRule.getSceneName();
+            log.info("识别到场景规则：{}，规则内容：\n{}", sceneName, structuredRules);
         } else {
             structuredRules = null;
+            sceneName = null;
         }
         
         // 1. 从 operation 中识别修改类型（通过关键词匹配）
-        List<String> identifiedTypes = modificationTypeService.identifyTypes(operation);
+        List<String> identifiedTypes = modificationTypeService.identifyTypes();
         log.info("识别到的修改类型: {}", identifiedTypes);
         
         // 2. 根据类型查询对应的知识库
         List<KnowledgeBase> knowledgeList = new ArrayList<>();
         if (!identifiedTypes.isEmpty()) {
-            knowledgeList = modificationTypeService.findKnowledgeBaseByTypes(identifiedTypes);
-            log.info("根据类型 {} 查询到知识库记录：{} 条", identifiedTypes, knowledgeList.size());
+            knowledgeList = modificationTypeService.findKnowledgeBaseByTypesAndScene();
+            log.info("根据类型 {} 和场景 {} 查询到知识库记录：{} 条", identifiedTypes, sceneName, knowledgeList.size());
         } else {
             log.warn("未识别到任何修改类型，不查询知识库");
         }
@@ -408,6 +411,12 @@ public class CouponModificationService {
             promptBuilder.append(String.join("、", identifiedTypes)).append("\n");
             promptBuilder.append("请参考对应类型的规则详情进行操作。\n\n");
         }
+
+        // 知识库操作类型约束：仅允许新增、删除、修改、查询
+        promptBuilder.append("【知识库操作类型说明】\n");
+        promptBuilder.append("知识库中的操作类型仅允许以下四种：新增、删除、修改、查询。\n");
+        promptBuilder.append("其中，“加回”“恢复”“还原”“放回”等本质上视为“修改”，请统一归类为“修改”。\n");
+        promptBuilder.append("在调用 TOOL_CALL:recordChanges(...) 时，第三个参数必须从 {新增, 删除, 修改, 查询} 中选择；如果本次属于“加回/恢复/还原/放回”，请使用“修改”。\n\n");
         
         // 如果有知识库，显示相关案例
         if (knowledgeList != null && !knowledgeList.isEmpty()) {

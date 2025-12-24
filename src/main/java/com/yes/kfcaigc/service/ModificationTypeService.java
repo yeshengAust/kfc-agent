@@ -27,38 +27,17 @@ public class ModificationTypeService {
     
     /**
      * 从operation中识别修改类型（可识别多个类型）
-     * @param operation 操作指令
      * @return 识别到的修改类型列表（按优先级降序）
      */
-    public List<String> identifyTypes(String operation) {
-        if (operation == null || operation.trim().isEmpty()) {
-            return Collections.emptyList();
-        }
-        
+    public List<String> identifyTypes() {
         // 获取所有修改类型规则
         List<ModificationTypeRule> rules = modificationTypeRuleRepository.getAllRules();
-        
-        // 存储匹配的类型及其优先级
-        Map<String, Integer> matchedTypes = new HashMap<>();
-        
-        for (ModificationTypeRule rule : rules) {
-            String[] keywords = rule.getKeywords().split(",");
-            for (String keyword : keywords) {
-                if (operation.contains(keyword.trim())) {
-                    matchedTypes.put(rule.getType(), rule.getPriority());
-                    break; // 该类型已匹配，跳出关键词循环
-                }
-            }
-        }
-        
+        rules.sort(Comparator.comparingInt(ModificationTypeRule::getPriority).reversed());
         // 按优先级降序排序
-        List<String> types = matchedTypes.entrySet().stream()
-                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
-                .map(Map.Entry::getKey)
+        return rules.stream()
+                .map(ModificationTypeRule::getType)
                 .collect(Collectors.toList());
-        
-        log.info("从operation识别到的修改类型: operation={}, types={}", operation, types);
-        return types;
+
     }
     
     /**
@@ -85,6 +64,15 @@ public class ModificationTypeService {
         return result;
     }
     
+    /**
+     * 根据类型列表和场景查询知识库
+     * @return 匹配的知识库记录列表
+     */
+    public List<KnowledgeBase> findKnowledgeBaseByTypesAndScene() {
+        return  knowledgeBaseRepository.findAll();
+
+
+    }
     /**
      * 获取所有修改类型规则（用于提供给AI）
      * @return 所有规则的详细信息

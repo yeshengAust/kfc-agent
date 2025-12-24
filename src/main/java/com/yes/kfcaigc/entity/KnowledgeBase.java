@@ -37,6 +37,12 @@ public class KnowledgeBase implements Serializable {
     private String type;
 
     /**
+     * 场景标识（如：通用/删除产品/替换产品等）
+     */
+    @TableField("scene")
+    private String scene;
+
+    /**
      * 修改结果（包含多个origin和now的JSON数组）
      */
     @TableField("result")
