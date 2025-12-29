@@ -1,5 +1,6 @@
 package com.yes.kfcaigc.service;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.yes.kfcaigc.entity.KnowledgeBase;
 import com.yes.kfcaigc.entity.ModificationTypeRule;
 import com.yes.kfcaigc.repository.KnowledgeBaseRepository;
@@ -104,7 +105,7 @@ class ModificationTypeServiceTest {
     void testFindKnowledgeBaseByTypes_成功查询() {
         // given
         List<String> types = Arrays.asList("删除", "新增");
-        when(knowledgeBaseRepository.list(any())).thenReturn(mockKnowledgeList);
+        when(knowledgeBaseRepository.list(any(QueryWrapper.class))).thenReturn(mockKnowledgeList);
 
         // when
         List<KnowledgeBase> result = modificationTypeService.findKnowledgeBaseByTypes(types);
@@ -122,7 +123,7 @@ class ModificationTypeServiceTest {
         // then
         assertNotNull(result);
         assertTrue(result.isEmpty());
-        verify(knowledgeBaseRepository, never()).list(any());
+        verify(knowledgeBaseRepository, never()).list(any(QueryWrapper.class));
     }
 
     @Test

@@ -235,4 +235,179 @@ class SystemConfigControllerTest {
         assertEquals(false, response.getBody().get("success"));
         assertTrue(response.getBody().get("message").toString().contains("更新失败"));
     }
+
+    @Test
+    void testListConfigs_敏感信息长度小于8位() {
+        // given - 测试短密钥脱敏逻辑
+        SystemConfig shortKeyConfig = new SystemConfig();
+        shortKeyConfig.setId(3L);
+        shortKeyConfig.setConfigKey("short.key");
+        shortKeyConfig.setConfigValue("abc123"); // 长度小于8
+        shortKeyConfig.setConfigType("string");
+        shortKeyConfig.setIsEncrypted(1);
+        shortKeyConfig.setCreateTime(LocalDateTime.now());
+        shortKeyConfig.setUpdateTime(LocalDateTime.now());
+        
+        when(systemConfigRepository.list()).thenReturn(Collections.singletonList(shortKeyConfig));
+
+        // when
+        ResponseEntity<List<Map<String, Object>>> response = systemConfigController.listConfigs();
+
+        // then
+        assertNotNull(response.getBody());
+        Map<String, Object> config = response.getBody().get(0);
+        String configValue = (String) config.get("configValue");
+        
+        // 长度小于8位应该全部用星号
+        assertEquals("********", configValue);
+    }
+
+    @Test
+    void testListConfigs_isEncrypted为null() {
+        // given - 测试isEncrypted为null的情况
+        SystemConfig nullEncryptedConfig = new SystemConfig();
+        nullEncryptedConfig.setId(4L);
+        nullEncryptedConfig.setConfigKey("null.encrypted");
+        nullEncryptedConfig.setConfigValue("testValue");
+        nullEncryptedConfig.setConfigType("string");
+        nullEncryptedConfig.setIsEncrypted(null); // null
+        nullEncryptedConfig.setCreateTime(LocalDateTime.now());
+        nullEncryptedConfig.setUpdateTime(LocalDateTime.now());
+        
+        when(systemConfigRepository.list()).thenReturn(Collections.singletonList(nullEncryptedConfig));
+
+        // when
+        ResponseEntity<List<Map<String, Object>>> response = systemConfigController.listConfigs();
+
+        // then
+        assertNotNull(response.getBody());
+        Map<String, Object> config = response.getBody().get(0);
+        String configValue = (String) config.get("configValue");
+        
+        // isEncrypted为null时应该正常显示
+        assertEquals("testValue", configValue);
+    }
+
+    @Test
+    void testListConfigs_isEncrypted为0() {
+        // given - 测试isEncrypted=0的情况
+        SystemConfig nonEncryptedConfig = new SystemConfig();
+        nonEncryptedConfig.setId(5L);
+        nonEncryptedConfig.setConfigKey("non.encrypted");
+        nonEncryptedConfig.setConfigValue("plainValue");
+        nonEncryptedConfig.setConfigType("string");
+        nonEncryptedConfig.setIsEncrypted(0);
+        nonEncryptedConfig.setCreateTime(LocalDateTime.now());
+        nonEncryptedConfig.setUpdateTime(LocalDateTime.now());
+        
+        when(systemConfigRepository.list()).thenReturn(Collections.singletonList(nonEncryptedConfig));
+
+        // when
+        ResponseEntity<List<Map<String, Object>>> response = systemConfigController.listConfigs();
+
+        // then
+        assertNotNull(response.getBody());
+        Map<String, Object> config = response.getBody().get(0);
+        String configValue = (String) config.get("configValue");
+        
+        // isEncrypted=0时应该正常显示
+        assertEquals("plainValue", configValue);
+    }
+
+    @Test
+    void testListConfigs_configValue为null() {
+        // given - 测试configValue为null的情况
+        SystemConfig nullValueConfig = new SystemConfig();
+        nullValueConfig.setId(6L);
+        nullValueConfig.setConfigKey("null.value");
+        nullValueConfig.setConfigValue(null);
+        nullValueConfig.setConfigType("string");
+        nullValueConfig.setIsEncrypted(1);
+        nullValueConfig.setCreateTime(LocalDateTime.now());
+        nullValueConfig.setUpdateTime(LocalDateTime.now());
+        
+        when(systemConfigRepository.list()).thenReturn(Collections.singletonList(nullValueConfig));
+
+        // when
+        ResponseEntity<List<Map<String, Object>>> response = systemConfigController.listConfigs();
+
+        // then
+        assertNotNull(response.getBody());
+        Map<String, Object> config = response.getBody().get(0);
+        String configValue = (String) config.get("configValue");
+        
+        // value为null时应该显示星号
+        assertEquals("********", configValue);
+    }
+
+    @Test
+    void testListConfigs_空列表() {
+        // given
+        when(systemConfigRepository.list()).thenReturn(Collections.emptyList());
+
+        // when
+        ResponseEntity<List<Map<String, Object>>> response = systemConfigController.listConfigs();
+
+        // then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertTrue(response.getBody().isEmpty());
+    }
+
+    @Test
+    void testGetConfig_空字符串key() {
+        // given
+        String configKey = "";
+        when(systemConfigRepository.getConfigValue(configKey)).thenReturn(null);
+
+        // when
+        ResponseEntity<Map<String, Object>> response = systemConfigController.getConfig(configKey);
+
+        // then
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void testUpdateConfig_空字符串value() {
+        // given
+        String configKey = "test.key";
+        Map<String, String> request = new HashMap<>();
+        request.put("configValue", "");
+        
+        when(systemConfigRepository.updateConfigValue(configKey, "")).thenReturn(true);
+
+        // when
+        ResponseEntity<Map<String, Object>> response = systemConfigController.updateConfig(configKey, request);
+
+        // then
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(true, response.getBody().get("success"));
+    }
+
+    @Test
+    void testListConfigs_敏感信息刚好8位() {
+        // given
+        SystemConfig config = new SystemConfig();
+        config.setId(7L);
+        config.setConfigKey("eight.key");
+        config.setConfigValue("12345678"); // 刚好8位
+        config.setConfigType("string");
+        config.setIsEncrypted(1);
+        config.setCreateTime(LocalDateTime.now());
+        config.setUpdateTime(LocalDateTime.now());
+        
+        when(systemConfigRepository.list()).thenReturn(Collections.singletonList(config));
+
+        // when
+        ResponseEntity<List<Map<String, Object>>> response = systemConfigController.listConfigs();
+
+        // then
+        assertNotNull(response.getBody());
+        Map<String, Object> result = response.getBody().get(0);
+        String configValue = (String) result.get("configValue");
+        
+        // 刚好8位应该显示完整+星号
+        assertEquals("12345678********", configValue);
+    }
 }

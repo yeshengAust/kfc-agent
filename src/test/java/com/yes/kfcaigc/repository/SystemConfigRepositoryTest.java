@@ -5,8 +5,8 @@ import com.yes.kfcaigc.mapper.SystemConfigMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -24,7 +24,7 @@ class SystemConfigRepositoryTest {
     @Mock
     private SystemConfigMapper systemConfigMapper;
 
-    @InjectMocks
+    @Spy
     private SystemConfigRepository systemConfigRepository;
 
     private SystemConfig mockConfig;
@@ -45,7 +45,7 @@ class SystemConfigRepositoryTest {
     @Test
     void testGetConfigValue_成功获取配置() {
         // given
-        when(systemConfigMapper.selectOne(any())).thenReturn(mockConfig);
+        doReturn(mockConfig).when(systemConfigRepository).getOne(any());
 
         // when
         String result = systemConfigRepository.getConfigValue("qwen.api.key");
@@ -53,13 +53,13 @@ class SystemConfigRepositoryTest {
         // then
         assertNotNull(result);
         assertEquals("sk-test123456", result);
-        verify(systemConfigMapper, times(1)).selectOne(any());
+        verify(systemConfigRepository, times(1)).getOne(any());
     }
 
     @Test
     void testGetConfigValue_配置不存在返回null() {
         // given
-        when(systemConfigMapper.selectOne(any())).thenReturn(null);
+        doReturn(null).when(systemConfigRepository).getOne(any());
 
         // when
         String result = systemConfigRepository.getConfigValue("non.existent.key");
@@ -71,7 +71,7 @@ class SystemConfigRepositoryTest {
     @Test
     void testGetConfigValue_带默认值_配置存在() {
         // given
-        when(systemConfigMapper.selectOne(any())).thenReturn(mockConfig);
+        doReturn(mockConfig).when(systemConfigRepository).getOne(any());
 
         // when
         String result = systemConfigRepository.getConfigValue("qwen.api.key", "default-value");
@@ -83,7 +83,7 @@ class SystemConfigRepositoryTest {
     @Test
     void testGetConfigValue_带默认值_配置不存在返回默认值() {
         // given
-        when(systemConfigMapper.selectOne(any())).thenReturn(null);
+        doReturn(null).when(systemConfigRepository).getOne(any());
 
         // when
         String result = systemConfigRepository.getConfigValue("non.existent.key", "default-value");
@@ -95,8 +95,8 @@ class SystemConfigRepositoryTest {
     @Test
     void testUpdateConfigValue_成功更新() {
         // given
-        when(systemConfigMapper.selectOne(any())).thenReturn(mockConfig);
-        when(systemConfigMapper.updateById(any())).thenReturn(1);
+        doReturn(mockConfig).when(systemConfigRepository).getOne(any());
+        doReturn(true).when(systemConfigRepository).updateById(any(SystemConfig.class));
 
         // when
         boolean result = systemConfigRepository.updateConfigValue("qwen.api.key", "new-value");
@@ -104,27 +104,27 @@ class SystemConfigRepositoryTest {
         // then
         assertTrue(result);
         assertEquals("new-value", mockConfig.getConfigValue());
-        verify(systemConfigMapper, times(1)).updateById(any());
+        verify(systemConfigRepository, times(1)).updateById(any(SystemConfig.class));
     }
 
     @Test
     void testUpdateConfigValue_配置不存在返回false() {
         // given
-        when(systemConfigMapper.selectOne(any())).thenReturn(null);
+        doReturn(null).when(systemConfigRepository).getOne(any());
 
         // when
         boolean result = systemConfigRepository.updateConfigValue("non.existent.key", "new-value");
 
         // then
         assertFalse(result);
-        verify(systemConfigMapper, never()).updateById(any());
+        verify(systemConfigRepository, never()).updateById(any(SystemConfig.class));
     }
 
     @Test
     void testUpdateConfigValue_更新失败() {
         // given
-        when(systemConfigMapper.selectOne(any())).thenReturn(mockConfig);
-        when(systemConfigMapper.updateById(any())).thenReturn(0);
+        doReturn(mockConfig).when(systemConfigRepository).getOne(any());
+        doReturn(false).when(systemConfigRepository).updateById(any(SystemConfig.class));
 
         // when
         boolean result = systemConfigRepository.updateConfigValue("qwen.api.key", "new-value");
