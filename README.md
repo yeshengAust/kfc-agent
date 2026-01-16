@@ -25,13 +25,30 @@
 
 编辑 `src/main/resources/application.properties`：
 
+#### 使用千文云端模型（默认）
 ```properties
-# 千文模型配置
-qwen.api.base-url=https://dashscope.aliyuncs.com/compatible-mode/v1
-qwen.api.key=your-api-key-here
-qwen.api.model-name=qwen-plus
-qwen.api.temperature=0.1
+# 模型选择
+ai.model.type=qwen
+
+# 千文模型配置（在数据库 system_config 表中配置）
+# qwen.api.base-url=https://dashscope.aliyuncs.com/compatible-mode/v1
+# qwen.api.key=your-api-key-here
+# qwen.api.model-name=qwen-plus
+# qwen.api.temperature=0.1
 ```
+
+#### 使用本地Ollama模型
+```properties
+# 模型选择
+ai.model.type=ollama
+
+# Ollama配置（在数据库 system_config 表中配置）
+# ollama.api.base-url=http://localhost:11434
+# ollama.api.model-name=qwen:1.8b
+# ollama.api.temperature=0.1
+```
+
+**注意：** 模型配置已迁移至数据库 `system_config` 表中，可以通过系统配置API动态修改。
 
 ### 3. 运行
 
@@ -128,7 +145,8 @@ kfc-aigc/
 │   ├── main/
 │   │   ├── java/com/yes/kfcaigc/
 │   │   │   ├── config/
-│   │   │   │   └── QwenModelConfig.java          # 千文模型配置
+│   │   │   │   ├── QwenModelConfig.java          # 千文模型配置
+│   │   │   │   └── OllamaModelConfig.java        # Ollama本地模型配置
 │   │   │   ├── controller/
 │   │   │   │   └── CouponGenerationController.java  # REST API控制器
 │   │   │   ├── model/
@@ -155,11 +173,19 @@ kfc-aigc/
 - 执行删除或替换操作
 - 返回修改后的券文案
 
-### 2. QwenModelConfig
+### 2. 模型配置
 
-千文模型配置：
+系统支持两种AI模型：
+
+#### QwenModelConfig（千文云端模型）
 - 配置API端点和密钥
 - 设置模型参数（temperature等）
+- 默认使用qwen-plus模型
+
+#### OllamaModelConfig（本地Ollama模型）
+- 配置本地Ollama服务器地址（默认：http://localhost:11434）
+- 支持qwen:1.8b等本地模型
+- 无需API密钥，降低成本
 
 ## 使用示例
 
@@ -207,6 +233,7 @@ kfc-aigc/
 
 - `langchain4j`: Langchain4j核心库
 - `langchain4j-open-ai`: OpenAI兼容接口（适配千文模型）
+- `langchain4j-ollama`: Ollama本地模型接口（适配本地qwen:1.8b模型）
 - `spring-boot-starter-web`: Spring Boot Web支持
 
 ## 许可证

@@ -4,16 +4,18 @@ import com.yes.kfcaigc.repository.SystemConfigRepository;
 import dev.langchain4j.model.chat.ChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@ConditionalOnProperty(name = "ai.model.type", havingValue = "qwen", matchIfMissing = true)
 public class QwenModelConfig {
 
     @Autowired
     private SystemConfigRepository systemConfigRepository;
 
-    @Bean
+//    @Bean
     public ChatLanguageModel qwenChatModel() {
         // 从数据库读取配置
         String baseUrl = systemConfigRepository.getConfigValue("qwen.api.base-url", 

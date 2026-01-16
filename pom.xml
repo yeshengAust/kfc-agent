@@ -84,6 +84,13 @@
             <artifactId>langchain4j-open-ai</artifactId>
             <version>0.34.0</version>
         </dependency>
+
+        <!-- Langchain4j Ollama (适配本地Ollama模型) -->
+        <dependency>
+            <groupId>dev.langchain4j</groupId>
+            <artifactId>langchain4j-ollama</artifactId>
+            <version>0.34.0</version>
+        </dependency>
         
         
         <!-- JSON处理 -->

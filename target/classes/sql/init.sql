@@ -144,7 +144,10 @@ INSERT INTO `system_config` (`config_key`, `config_value`, `config_type`, `descr
 ('qwen.api.base-url', 'https://dashscope.aliyuncs.com/compatible-mode/v1', 'string', '千问模型API基础URL', 0),
 ('qwen.api.key', 'sk-eac61c69a1714ad88dcb82eef6127239', 'string', '千问模型API密钥', 1),
 ('qwen.api.model-name', 'qwen-plus', 'string', '千问模型名称', 0),
-('qwen.api.temperature', '0.1', 'number', '模型温度参数', 0);
+('qwen.api.temperature', '0.1', 'number', '模型温度参数', 0),
+('ollama.api.base-url', 'http://localhost:11434', 'string', 'Ollama本地服务器基础URL', 0),
+('ollama.api.model-name', 'qwen:1.8b', 'string', 'Ollama模型名称', 0),
+('ollama.api.temperature', '0.1', 'number', 'Ollama模型温度参数', 0);
 
 -- 插入测试数据
 INSERT INTO `coupon_info` (`activity_code`, `description`) VALUES
